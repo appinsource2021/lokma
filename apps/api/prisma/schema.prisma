@@ -1,0 +1,173 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Restaurant {
+  id           String         @id @default(cuid())
+  slug         String         @unique
+  name         String
+  description  String         @default("")
+  cuisines     String[]
+  street       String
+  city         String
+  lat          Float
+  lng          Float
+  rating       Float          @default(0)
+  ratingCount  Int            @default(0)
+  /// Hue (0–359) for the generated cover; real images come later.
+  coverHue     Int            @default(20)
+  /// OpeningPeriod[] from @lokma/core, times in Europe/Berlin.
+  openingHours Json
+  prepMinutes  Int            @default(15)
+  createdAt    DateTime       @default(now())
+  zones        DeliveryZone[]
+  categories   MenuCategory[]
+  promotions   Promotion[]
+  orders       Order[]
+}
+
+model DeliveryZone {
+  id           String     @id @default(cuid())
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  radiusKm     Float
+  deliveryFee  Int
+  minOrder     Int
+  etaMin       Int
+  etaMax       Int
+
+  @@index([restaurantId])
+}
+
+model MenuCategory {
+  id           String     @id @default(cuid())
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  name         String
+  sort         Int        @default(0)
+  items        MenuItem[]
+
+  @@index([restaurantId])
+}
+
+model MenuItem {
+  id           String        @id @default(cuid())
+  categoryId   String
+  category     MenuCategory  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  name         String
+  description  String        @default("")
+  basePrice    Int
+  available    Boolean       @default(true)
+  tags         String[]
+  allergens    String[]
+  sort         Int           @default(0)
+  optionGroups OptionGroup[]
+
+  @@index([categoryId])
+}
+
+model OptionGroup {
+  id        String   @id @default(cuid())
+  itemId    String
+  item      MenuItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  name      String
+  minSelect Int      @default(0)
+  maxSelect Int      @default(1)
+  sort      Int      @default(0)
+  options   Option[]
+
+  @@index([itemId])
+}
+
+model Option {
+  id         String      @id @default(cuid())
+  groupId    String
+  group      OptionGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  name       String
+  priceDelta Int         @default(0)
+  sort       Int         @default(0)
+
+  @@index([groupId])
+}
+
+enum PromotionKind {
+  PERCENT
+  FIXED
+}
+
+model Promotion {
+  id           String        @id @default(cuid())
+  restaurantId String
+  restaurant   Restaurant    @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  kind         PromotionKind
+  value        Int
+  minSubtotal  Int           @default(0)
+  label        String
+  active       Boolean       @default(true)
+  startsAt     DateTime?
+  endsAt       DateTime?
+
+  @@index([restaurantId])
+}
+
+enum FulfilmentMode {
+  DELIVERY
+  PICKUP
+}
+
+enum OrderStatus {
+  PLACED
+  ACCEPTED
+  PREPARING
+  ON_THE_WAY
+  READY_FOR_PICKUP
+  COMPLETED
+  REJECTED
+  CANCELLED
+}
+
+model Order {
+  id             String         @id @default(cuid())
+  restaurantId   String
+  restaurant     Restaurant     @relation(fields: [restaurantId], references: [id])
+  mode           FulfilmentMode
+  status         OrderStatus    @default(PLACED)
+  customerName   String
+  customerPhone  String
+  addressLine    String?
+  addressLat     Float?
+  addressLng     Float?
+  note           String?
+  subtotal       Int
+  discount       Int
+  deliveryFee    Int
+  total          Int
+  promotionLabel String?
+  etaMin         Int
+  etaMax         Int
+  placedAt       DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  items          OrderItem[]
+
+  @@index([restaurantId, placedAt])
+}
+
+model OrderItem {
+  id        String @id @default(cuid())
+  orderId   String
+  order     Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  itemId    String
+  name      String
+  quantity  Int
+  unitPrice Int
+  lineTotal Int
+  /// Snapshot of the chosen options: { id, name, priceDelta }[]
+  options   Json
+
+  @@index([orderId])
+}

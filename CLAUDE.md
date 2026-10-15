@@ -35,6 +35,33 @@ A flow note is the spec that implementation follows.
 
 ## Build
 
-Planned stack: TypeScript monorepo with a Next.js web app (customer, restaurant
-and admin views), a Node API and PostgreSQL with Prisma. Update this section when
-the scaffold lands.
+pnpm monorepo, Node 22, TypeScript everywhere.
+
+| Package | What | Stack |
+|---|---|---|
+| `packages/core` | Pricing, option validation, promotions, delivery zones, opening hours, distance. Pure functions shared by API and web. | TypeScript, Vitest |
+| `apps/api` | REST API on port 4000 | Fastify 5, Zod, Prisma 6, PostgreSQL 16 |
+| `apps/web` | Customer web app on port 3000 | Next.js 15 (App Router), React 19, plain CSS |
+
+Commands (from the repo root):
+
+```bash
+cp .env.example .env      # once
+pnpm install
+pnpm db:setup             # start local PostgreSQL, create role and database
+pnpm db:migrate           # apply migrations
+pnpm db:seed              # invented demo restaurants around Mannheim
+pnpm dev                  # API :4000 and web :3000
+pnpm typecheck && pnpm test
+```
+
+Rules:
+
+- Money is integer euro cents. Format only at the edge (`formatEuro`).
+- The server is the source of truth for prices: `POST /orders` re-prices the
+  cart with `priceCart` and ignores client totals. The web app uses the same
+  function for instant feedback.
+- Times and opening hours use `Europe/Berlin`.
+- Every schema change gets a Prisma migration (`pnpm --filter @lokma/api db:migrate:new <name>`).
+- Seed data is invented. Never copy real restaurants, menus or prices.
+- Status of each flow lives in `docs/research/README.md` and `docs/roadmap.md`.

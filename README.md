@@ -12,8 +12,39 @@ other service.
 
 ## Status
 
-Early stage. The repository holds the research setup, and the application is
-next.
+The first working slice is in place: browse restaurants near an address,
+build a cart with options and promotions, check out as a guest and follow the
+order status. See [`docs/roadmap.md`](docs/roadmap.md) for what comes next.
+
+## Run it locally
+
+Requirements: Node 22, pnpm 10, PostgreSQL 16.
+
+```bash
+cp .env.example .env
+pnpm install
+pnpm db:setup     # Debian/Ubuntu: starts PostgreSQL and creates the lokma database
+pnpm db:migrate
+pnpm db:seed      # invented demo restaurants around Mannheim
+pnpm dev          # API on http://localhost:4000, web on http://localhost:3000
+```
+
+Open http://localhost:3000, pick a Mannheim area and order. Restaurants follow
+their opening hours in Europe/Berlin time; one demo restaurant stays open
+until 03:00.
+
+```bash
+pnpm typecheck
+pnpm test         # API tests need DATABASE_URL
+```
+
+## Project layout
+
+- `packages/core`: pricing, option rules, promotions, delivery zones and
+  opening hours, shared by the API and the web app.
+- `apps/api`: Fastify + Prisma + PostgreSQL REST API.
+- `apps/web`: Next.js customer web app.
+- `docs/research`: flow notes that the implementation follows.
 
 ## How the work is done
 
