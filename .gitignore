@@ -1,0 +1,11 @@
+node_modules/
+.next/
+dist/
+coverage/
+.env
+.env.*
+!.env.example
+.DS_Store
+*.log
+# Raw captures and downloaded third-party artifacts never enter the repo
+research-artifacts/
