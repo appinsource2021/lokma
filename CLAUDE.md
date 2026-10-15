@@ -23,8 +23,10 @@ then **build** Lokma with original code.
 - For a website or web app, the JavaScript/browser tools need no extra engine.
   Android APKs need JADX (`REA_JADX_MCP_JAR`), and native binaries need Ghidra or
   Hopper.
-- Each finding cites its REA evidence (tool and target), recorded in the
-  research note rather than as raw dumps.
+- Each finding cites its evidence: the REA tool and target, or a screen
+  recording with timestamps. Record it in the research note, not as raw dumps.
+- Screen recordings may contain personal data. Never copy names, emails,
+  addresses or order details from them into notes.
 
 ## Research notes
 
